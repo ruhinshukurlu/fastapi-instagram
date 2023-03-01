@@ -8,6 +8,8 @@ from typing import List
 import random
 import string
 import shutil
+from routers.schemas import UserAuth
+from auth.oauth2 import get_current_user
 
 
 router = APIRouter(
@@ -18,7 +20,7 @@ router = APIRouter(
 image_url_types = ['absolute', 'relative']
 
 @router.post('/', response_model=PostDisplay)
-def create_post(request:PostBase, db: Session = Depends(get_db)):
+def create_post(request:PostBase, db: Session = Depends(get_db), current_user:UserAuth = Depends(get_current_user)):
     if not request.image_url_type in image_url_types:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="image_url_type can only get 'absolute' or 'relative' values ")
     return db_post.create_post(db, request)
@@ -30,7 +32,7 @@ def get_all_posts(db:Session = Depends(get_db)):
 
 
 @router.post("/image")
-def upload_image(image: UploadFile = File(...)):
+def upload_image(image: UploadFile = File(...), current_user:UserAuth = Depends(get_current_user)):
     letters = string.ascii_letters
     random_str = ''.join(random.choice(letters) for i in range(6))
     new = f"_{random_str}."
