@@ -20,7 +20,7 @@ router = APIRouter(
 image_url_types = ['absolute', 'relative']
 
 @router.post('/', response_model=PostDisplay)
-def create_post(request:PostBase, db: Session = Depends(get_db), current_user:UserAuth = Depends(get_current_user)):
+def create_post(request:PostBase, db: Session = Depends(get_db)):
     if not request.image_url_type in image_url_types:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="image_url_type can only get 'absolute' or 'relative' values ")
     return db_post.create_post(db, request)
@@ -45,3 +45,8 @@ def upload_image(image: UploadFile = File(...), current_user:UserAuth = Depends(
     return {
         "filename":path
     }
+
+
+@router.get('/delete/{id}')
+def delete_post(id:int, db:Session = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
+    db_post.delete(id, db, current_user.id)
