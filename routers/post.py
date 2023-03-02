@@ -8,6 +8,8 @@ from typing import List
 import random
 import string
 import shutil
+from routers.schemas import UserAuth
+from auth.oauth2 import get_current_user
 
 
 router = APIRouter(
@@ -30,7 +32,7 @@ def get_all_posts(db:Session = Depends(get_db)):
 
 
 @router.post("/image")
-def upload_image(image: UploadFile = File(...)):
+def upload_image(image: UploadFile = File(...), current_user:UserAuth = Depends(get_current_user)):
     letters = string.ascii_letters
     random_str = ''.join(random.choice(letters) for i in range(6))
     new = f"_{random_str}."
@@ -43,3 +45,8 @@ def upload_image(image: UploadFile = File(...)):
     return {
         "filename":path
     }
+
+
+@router.get('/delete/{id}')
+def delete_post(id:int, db:Session = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
+    db_post.delete(id, db, current_user.id)
